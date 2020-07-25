@@ -3,6 +3,7 @@
     [
       "env",
       {
+        "modules":false,
         "targets": {
           "browsers": ["> 1%", "last 2 versions", "not ie <= 8"]
         }
@@ -10,5 +11,21 @@
     ],
     "stage-2"
   ],
-  "plugins": ["transform-vue-jsx", "transform-runtime", "jsx-v-model"]
+  "plugins": [
+    "transform-vue-jsx", 
+    "jsx-v-model",
+    [ "component",
+        {
+          "libaryName":"element-ui",
+          "styleLibraryName":"theme-chalk"
+        }
+    ]
+  ],
+  "env": {
+    "test": {
+      "presets": ["env", "stage-2","es2015"],
+      "plugins": ["transform-vue-jsx", "transform-es2015-modules-commonjs", "syntax-dynamic-import"]
+    }
+  }
+
 }

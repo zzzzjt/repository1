@@ -2,12 +2,15 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue';
 import App from './App';
-import Router from 'vue-router';
+import Router from '../node_modules/vue-router';
 import routes from './router';
+import 'element-ui/lib/theme-chalk/index.css'
+import element from './element/index'
 import store from './store/index';
 
 Vue.config.productionTip = false;
 Vue.use(Router);
+Vue.use(element);
 
 const router = new Router({
   // base:env.base_build_path,
