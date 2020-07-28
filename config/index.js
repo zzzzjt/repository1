@@ -14,8 +14,8 @@ module.exports = {
         target: target,
         bypass: function(req, res, proxyOptions) {
           console.log(`PROXY: ${req.path}`);
-        }
-        // changeOrigin: true,
+        },
+        changeOrigin: true
       },
       '/login': {
         target: target,

@@ -20,9 +20,6 @@ export default {
   },
   created() {},
   methods: {
-    //1.  先掉users的接口  返回list
-    //在拿list里面第一个id 去请求detail接口
-    //分别用promise和 async
     async getHandle() {
       const result = await get(`/admin/hr/work_shifts/page`, {
         name: '',

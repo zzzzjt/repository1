@@ -1,11 +1,12 @@
 import axios from 'axios';
 
-// const token =
-//   'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTU5NzYiLCJqdGkiOiIwNzdiN2M0Yy01MWExLTQ1MmUtYmEyOS02MzlhYmM3YTkzZjgiLCJnaXZlbl9uYW1lIjoi5pa55omsIiwiR3JvdXAiOiIxZjg5NzNjNy0zZTMzLTRjZTgtYTg0NC04NzQ4Y2FhYzhlNzEiLCJUb2tlbiI6IjhiMzk3NzUyMDM1NDYzYTI1ZTQzMjgwNGUyNjgzY2I4NjZlMmUzMTQiLCJleHAiOjE1OTU4MTY2NjUsImlzcyI6Imh0dHA6Ly91Yy5wdXB1dmlwLmNvbSIsImF1ZCI6Imh0dHA6Ly91Yy5wdXB1dmlwLmNvbSJ9.soMNDwsHnGLxAtB_2rAn9aN9iHdSM5I-3UOf3sTGbeM';
+const token = "fresh sfbghy216rhu325354y.;/'dp332";
 
 const instance = axios.create({
-  baseURL: 'https://ja.api.pupuvip.com'
-  // headers: { token: token }
+  baseURL: 'https://ja.api.pupuvip.com',
+  headers: {
+    Authorization: token
+  }
 });
 
 instance.interceptors.request.use(

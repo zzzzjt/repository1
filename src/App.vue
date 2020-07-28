@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png" />
+    <router-link :to="{name:'information'}">查看数据</router-link>
     <router-view />
   </div>
 </template>
@@ -9,10 +9,10 @@
 export default {
   data() {
     return {
-      input: ''
-    }
-  }
-}
+      input: '',
+    };
+  },
+};
 </script>
 
 <style>
