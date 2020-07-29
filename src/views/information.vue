@@ -4,22 +4,22 @@
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次名称
-          <input type="txet" placeholder="请输入" />
+          <input type="txet" placeholder="请输入" v-model="name" />
         </div>
       </el-col>
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次简称
-          <input type="txet" placeholder="请输入" />
+          <input type="txet" placeholder="请输入" v-model="abbr" />
         </div>
       </el-col>
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次类型
-          <el-select v-model="value1">
+          <el-select v-model="value1" @change="changeValue1($event)">
             <el-option
-              v-for="item in options1"
-              :key="item.value"
+              v-for="(item,index) in options1"
+              :key="index"
               :label="item.label"
               :value="item.value"
             ></el-option>
@@ -42,7 +42,7 @@
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次状态
-          <el-select v-model="value3">
+          <el-select v-model="value3" @change="changeValue3($event)">
             <el-option
               v-for="item in options3"
               :key="item.value"
@@ -54,8 +54,8 @@
       </el-col>
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
-          <el-button type="primary">查询</el-button>
-          <el-button>创建</el-button>
+          <el-button type="primary" @click="getHandle">查询</el-button>
+          <el-button @click="postHandle">创建</el-button>
         </div>
       </el-col>
     </el-row>
@@ -140,8 +140,8 @@ export default {
     return {
       name: '',
       abbr: '',
-      type: 0 || 1,
-      status: 0 || 1,
+      type: '',
+      status: '',
       options1: [
         {
           value: '选项1',
@@ -156,7 +156,7 @@ export default {
           label: '灵活',
         },
       ],
-      value1: '',
+      value1: '选项1',
       options2: [
         {
           value: '选项1',
@@ -167,7 +167,7 @@ export default {
           label: '指定岗位',
         },
       ],
-      value2: '',
+      value2: '选项1',
       options3: [
         {
           value: '选项1',
@@ -182,26 +182,42 @@ export default {
           label: '关闭',
         },
       ],
-      value3: '',
+      value3: '选项1',
       tableData: [],
     };
   },
   methods: {
     async getHandle() {
       const result = await get(`/admin/hr/work_shifts/page`, {
-        name: '',
-        abbr: '',
-        type: '',
+        name: this.name,
+        abbr: this.abbr,
+        type: this.type,
         description: '',
         total_rest: '',
         un_limit_job: '',
         color: '',
         reference_count: '',
-        status: '',
+        status: this.status,
         page: 1,
-        size: 15,
+        // size: 15,
       });
       this.tableData = result.data.data;
+    },
+    async postHandle() {
+      const res = await post(`/admin/hr/work_shifts/page`, {
+        name: this.name,
+        abbr: this.abbr,
+        type: this.type,
+        description: '',
+        total_rest: '',
+        un_limit_job: '',
+        color: '',
+        reference_count: '',
+        status: this.status,
+      });
+      if (res.data.errmsg) {
+        alert(res.data.errmsg);
+      }
     },
     minChange(min) {
       let time = '';
@@ -218,6 +234,32 @@ export default {
         time = hour + ':' + min;
       }
       return time;
+    },
+    changeValue1(event) {
+      this.value1 = event;
+      console.log(event);
+      if (this.value1 == '选项1') {
+        this.type = '';
+      }
+      if (this.value1 == '选项2') {
+        this.type = 0;
+      }
+      if (this.value1 == '选项3') {
+        this.type = 1;
+      }
+    },
+    changeValue3(event) {
+      this.value3 = event;
+      if (this.value3 == '选项1') {
+        this.status = '';
+      }
+      console.log(event);
+      if (this.value3 == '选项2') {
+        this.status = 1;
+      }
+      if (this.value3 == '选项3') {
+        this.status = 0;
+      }
     },
   },
   mounted() {
