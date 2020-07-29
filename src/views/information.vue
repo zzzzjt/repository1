@@ -21,7 +21,7 @@
               v-for="(item,index) in options1"
               :key="index"
               :label="item.label"
-              :value="item.value"
+              :value="item.id"
             ></el-option>
           </el-select>
         </div>
@@ -44,10 +44,10 @@
           班次状态
           <el-select v-model="value3" @change="changeValue3($event)">
             <el-option
-              v-for="item in options3"
-              :key="item.value"
+              v-for="(item,index) in options3"
+              :key="index"
               :label="item.label"
-              :value="item.value"
+              :value="item.id"
             ></el-option>
           </el-select>
         </div>
@@ -97,27 +97,12 @@
       </el-table-column>
       <el-table-column prop="color" label="班次颜色" width="105">
         <template slot-scope="scope">
-          <div class="shift-color" v-if="scope.row.color==1" style="background:#FF649D;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==2" style="background:#FF649D66;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==3" style="background:#FF494966;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==4" style="background:##FF4949;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==5" style="background:##FF9B3366;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==6" style="background:#FF9B33;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==7" style="background:#FFDB1066;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==8" style="background:##FFDB10;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==9" style="background:#94E31966;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==10" style="background:#94E319;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==11" style="background:#19D687;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==12" style="background:#19D68766;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==13" style="background:#54DDDA;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==14" style="background:#54DDDA66;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==15" style="background:#3092FD;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==16" style="background:#3092FD66;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==17" style="background:#9059F4;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==18" style="background:#9059F466;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==19" style="background:#CA1DCE;"></div>
-          <div class="shift-color" v-else-if="scope.row.color==20" style="background:#CA1DCE66;"></div>
-          <div class="shift-color" v-else style="background:#ccc"></div>
+          <div
+            class="shift-color"
+            v-if="scope.row.color>0&&scope.row.color<=20"
+            :style="{background:bgcolor[scope.row.color]}"
+          ></div>
+          <div class="shift-color" v-else :style="{background:bgcolor[0]}"></div>
         </template>
       </el-table-column>
       <el-table-column prop="reference_count" label="引用次数" width="105"></el-table-column>
@@ -142,47 +127,76 @@ export default {
       abbr: '',
       type: '',
       status: '',
+      bgcolor: [
+        '#ccc',
+        '#FF649D',
+        '#FF649D66',
+        '#FF494966',
+        '#FF4949',
+        '#FF9B3366',
+        '#FF9B33',
+        '#FFDB1066',
+        '#FFDB10',
+        '#94E31966',
+        '#94E319',
+        '#19D687',
+        '#19D68766',
+        '#54DDDA',
+        '#54DDDA66',
+        '#3092FD',
+        '#3092FD66',
+        '#9059F4',
+        '#9059F466',
+        '#CA1DCE',
+        '#CA1DCE66',
+      ],
       options1: [
         {
-          value: '选项1',
+          id: '0',
           label: '不限',
+          value: '',
         },
         {
-          value: '选项2',
+          id: '1',
           label: '固定',
+          value: '0',
         },
         {
-          value: '选项3',
+          id: '2',
           label: '灵活',
+          value: '1',
         },
       ],
-      value1: '选项1',
+      value1: '0',
       options2: [
         {
-          value: '选项1',
+          value: '1',
           label: '不限',
         },
         {
-          value: '选项2',
+          value: '2',
           label: '指定岗位',
         },
       ],
-      value2: '选项1',
+      value2: '1',
       options3: [
         {
-          value: '选项1',
+          id: 0,
           label: '不限',
+          value: '',
         },
         {
-          value: '选项2',
-          label: '启用',
-        },
-        {
-          value: '选项3',
+          id: 1,
           label: '关闭',
+          value: '0',
+        },
+        {
+          id: 2,
+          label: '启用',
+          value: '1',
         },
       ],
-      value3: '选项1',
+      value3: 0,
       tableData: [],
     };
   },
@@ -199,7 +213,7 @@ export default {
         reference_count: '',
         status: this.status,
         page: 1,
-        // size: 15,
+        size: 15,
       });
       this.tableData = result.data.data;
     },
@@ -236,30 +250,12 @@ export default {
       return time;
     },
     changeValue1(event) {
-      this.value1 = event;
-      console.log(event);
-      if (this.value1 == '选项1') {
-        this.type = '';
-      }
-      if (this.value1 == '选项2') {
-        this.type = 0;
-      }
-      if (this.value1 == '选项3') {
-        this.type = 1;
-      }
+      this.type = this.options1[event].value;
+      console.log(this.type);
     },
     changeValue3(event) {
-      this.value3 = event;
-      if (this.value3 == '选项1') {
-        this.status = '';
-      }
-      console.log(event);
-      if (this.value3 == '选项2') {
-        this.status = 1;
-      }
-      if (this.value3 == '选项3') {
-        this.status = 0;
-      }
+      this.status = this.options3[event].value;
+      console.log(this.status);
     },
   },
   mounted() {
