@@ -1,4 +1,4 @@
-import { Input, Button, Checkbox, Row, Col, Divider, Select, Option, Table, TableColumn, Link } from 'element-ui';
+import { Input, Button, Checkbox, Row, Col, Divider, Select, Option, Table, TableColumn, Link, Pagination } from 'element-ui';
 const element = {
   install: function(Vue) {
     Vue.use(Input);
@@ -11,6 +11,7 @@ const element = {
     Vue.use(Table);
     Vue.use(TableColumn);
     Vue.use(Link);
+    Vue.use(Pagination);
   }
 };
 export default element;

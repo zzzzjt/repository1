@@ -4,21 +4,21 @@
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次名称
-          <input type="txet" placeholder="请输入" v-model="name" />
+          <input type="txet" placeholder="请输入" v-model="params.name" />
         </div>
       </el-col>
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次简称
-          <input type="txet" placeholder="请输入" v-model="abbr" />
+          <input type="txet" placeholder="请输入" v-model="params.abbr" />
         </div>
       </el-col>
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次类型
-          <el-select v-model="value1" @change="changeValue1($event)">
+          <el-select v-model="defaultType" @change="changeType($event)">
             <el-option
-              v-for="(item,index) in options1"
+              v-for="(item,index) in typeList"
               :key="index"
               :label="item.label"
               :value="item.id"
@@ -42,9 +42,9 @@
       <el-col :sm="10" :md="9" :lg="8">
         <div class="grid-content bg-purple">
           班次状态
-          <el-select v-model="value3" @change="changeValue3($event)">
+          <el-select v-model="defaultStatus" @change="changeStatus($event)">
             <el-option
-              v-for="(item,index) in options3"
+              v-for="(item,index) in statusList"
               :key="index"
               :label="item.label"
               :value="item.id"
@@ -64,29 +64,20 @@
       <el-table-column prop="abbr" label="班次简称" width="105"></el-table-column>
       <el-table-column prop="type" label="班次类型" width="105">
         <template slot-scope="scope">
-          <span v-if="scope.row.type==0" style="color:orange">固定</span>
-          <span v-if="scope.row.type==1" style="color:purple">灵活</span>
+          <span :style="{color:TYPE_MAP[scope.row.type].color}">{{TYPE_MAP[scope.row.type].name}}</span>
         </template>
       </el-table-column>
-      <el-table-column
-        prop="contain_relax,work_begin,work_end,relax_begin,relax_end"
-        label="班次时段"
-        width="215"
-      >
+      <el-table-column prop="work_time" label="班次时段" width="215">
+        <template slot-scope="scope">{{getArrangesTime(scope.row)}}</template>
+      </el-table-column>
+      <el-table-column prop="total_work_clock" label="总班次时长" width="105">
         <template slot-scope="scope">
-          <span v-if="scope.row.contain_relax==true">
-            {{minChange(scope.row.work_begin) }}-{{minChange(scope.row.relax_begin)}}、
-            {{minChange(scope.row.relax_end)}}-{{minChange(scope.row.work_end)}}
-          </span>
-          <span
-            v-if="scope.row.contain_relax==false"
-          >{{minChange(scope.row.work_begin)}}-{{minChange(scope.row.work_end)}}</span>
+          <span>{{ scope.row.total_work_clock > 0 ?`${(scope.row.total_work_clock/60).toFixed(1)}小时` : '--'}}</span>
         </template>
       </el-table-column>
       <el-table-column prop="total_rest" label="总休息时间" width="105">
         <template slot-scope="scope">
-          <span v-if="scope.row.total_rest>0">{{scope.row.total_rest}}分钟</span>
-          <span v-else>--</span>
+          <span>{{ scope.row.total_rest > 0 ?`${scope.row.total_rest}分钟` : '--'}}</span>
         </template>
       </el-table-column>
       <el-table-column prop="un_limit_job" label="适用岗位" width="105">
@@ -97,60 +88,50 @@
       </el-table-column>
       <el-table-column prop="color" label="班次颜色" width="105">
         <template slot-scope="scope">
-          <div
-            class="shift-color"
-            v-if="scope.row.color>0&&scope.row.color<=20"
-            :style="{background:bgcolor[scope.row.color]}"
-          ></div>
-          <div class="shift-color" v-else :style="{background:bgcolor[0]}"></div>
+          <div class="shift-color" :style="{background:bgcolor[scope.row.color] || '#ccc'}"></div>
         </template>
       </el-table-column>
       <el-table-column prop="reference_count" label="引用次数" width="105"></el-table-column>
       <el-table-column prop="status" label="班次状态" width="105">
         <template slot-scope="scope">
-          <span v-if="scope.row.status==0">关闭</span>
-          <span v-if="scope.row.status==1" style="color:red">启用</span>
+          <span
+            :style="{color:STATUS_MAP[scope.row.status].color}"
+          >{{ STATUS_MAP[scope.row.status].name}}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="85">
         <el-link type="primary">详情</el-link>
       </el-table-column>
     </el-table>
+    <el-pagination
+      background
+      layout="prev, pager, next"
+      :total="total_item"
+      :page-size="15"
+      @current-change="currentChange"
+    ></el-pagination>
   </div>
 </template>
 <script>
 import { get, post } from '../request';
+import { COLOR_MAP, TYPE_MAP, STATUS_MAP } from './constants';
+import moment from 'moment';
+
+const option = [];
 export default {
   data() {
     return {
-      name: '',
-      abbr: '',
-      type: '',
-      status: '',
-      bgcolor: [
-        '#ccc',
-        '#FF649D',
-        '#FF649D66',
-        '#FF494966',
-        '#FF4949',
-        '#FF9B3366',
-        '#FF9B33',
-        '#FFDB1066',
-        '#FFDB10',
-        '#94E31966',
-        '#94E319',
-        '#19D687',
-        '#19D68766',
-        '#54DDDA',
-        '#54DDDA66',
-        '#3092FD',
-        '#3092FD66',
-        '#9059F4',
-        '#9059F466',
-        '#CA1DCE',
-        '#CA1DCE66',
-      ],
-      options1: [
+      params: {
+        name: '',
+        abbr: '',
+        type: '',
+        status: '',
+        page: 1,
+      },
+      TYPE_MAP: TYPE_MAP,
+      STATUS_MAP: STATUS_MAP,
+      bgcolor: COLOR_MAP,
+      typeList: [
         {
           id: '0',
           label: '不限',
@@ -167,7 +148,7 @@ export default {
           value: '1',
         },
       ],
-      value1: '0',
+      defaultType: '0',
       options2: [
         {
           value: '1',
@@ -179,7 +160,7 @@ export default {
         },
       ],
       value2: '1',
-      options3: [
+      statusList: [
         {
           id: 0,
           label: '不限',
@@ -196,26 +177,42 @@ export default {
           value: '1',
         },
       ],
-      value3: 0,
+      defaultStatus: 0,
       tableData: [],
+      total_item: 0,
     };
   },
   methods: {
+    getArrangesTime(scope) {
+      const { contain_relax, work_begin, work_end, relax_begin, relax_end } = scope;
+      let str = '';
+      if (contain_relax) {
+        str = `${moment().set({ h: 0, m: work_begin }).format('HH:mm')}~
+          ${moment().set({ h: 0, m: relax_begin }).format('HH:mm')}、
+          ${moment().set({ h: 0, m: relax_end }).format('HH:mm')}~
+          ${moment().set({ h: 0, m: work_end }).format('HH:mm')}`;
+      } else {
+        str = `${moment().set({ h: 0, m: work_begin }).format('HH:mm')}~${moment().set({ h: 0, m: work_end }).format('HH:mm')}`;
+      }
+      return str;
+    },
     async getHandle() {
-      const result = await get(`/admin/hr/work_shifts/page`, {
-        name: this.name,
-        abbr: this.abbr,
-        type: this.type,
-        description: '',
-        total_rest: '',
-        un_limit_job: '',
-        color: '',
-        reference_count: '',
-        status: this.status,
-        page: 1,
-        size: 15,
-      });
+      // a = {name:'111'}  b ={age:12}  {name:'111',age:12}  //es8
+      const params = {
+        ...this.params,
+        ...{
+          description: '',
+          total_rest: '',
+          un_limit_job: '',
+          color: '',
+          reference_count: '',
+          size: 15,
+        },
+      };
+      const result = await get(`/admin/hr/work_shifts/page`, params);
       this.tableData = result.data.data;
+      this.total_item = result.data.pager.total_item_count;
+      console.log(result.data.pager.total_item_count);
     },
     async postHandle() {
       const res = await post(`/admin/hr/work_shifts/page`, {
@@ -233,29 +230,36 @@ export default {
         alert(res.data.errmsg);
       }
     },
-    minChange(min) {
-      let time = '';
-      let hour = Math.floor(min / 60);
-      min = min % 60;
-      min = (Array(2).join(0) + min).slice(-2);
-      if (hour > 24) {
-        hour = (Array(2).join(0) + hour).slice(-2);
-        hour -= 24;
-        time = '次日' + hour + ':' + min;
-      } else {
-        hour = (Array(2).join(0) + hour).slice(-2);
-        // console.log(Array(2).join(0) + hour);
-        time = hour + ':' + min;
-      }
-      return time;
-    },
-    changeValue1(event) {
-      this.type = this.options1[event].value;
+    // minChange(min) {
+    //   let time = '';
+    //   let hour = Math.floor(min / 60);
+    //   min = min % 60;
+    //   min = (Array(2).join(0) + min).slice(-2);
+    //   if (hour > 24) {
+    //     hour = (Array(2).join(0) + hour).slice(-2);
+    //     hour -= 24;
+    //     time = '次日' + hour + ':' + min;
+    //   } else {
+    //     hour = (Array(2).join(0) + hour).slice(-2);
+    //     // console.log(Array(2).join(0) + hour);
+    //     time = hour + ':' + min;
+    //   }
+    //   return time;
+    // },
+    changeType(event) {
+      this.params.type = this.typeList[event].value;
       console.log(this.type);
     },
-    changeValue3(event) {
-      this.status = this.options3[event].value;
+    changeStatus(event) {
+      this.params.status = this.statusList[event].value;
       console.log(this.status);
+    },
+    currentChange(val) {
+      this.params.page = val;
+      this.getHandle();
+    },
+    getHour(val) {
+      let hour = val / 60;
     },
   },
   mounted() {
@@ -283,6 +287,8 @@ input {
   transition: border-color 0.2s;
 }
 .el-col {
+  display: flex; /*弹性布局*/
+  justify-content: center; /*水平居中*/
   border-radius: 4px;
   margin-bottom: 10px;
 }
@@ -301,5 +307,10 @@ input {
 #all {
   padding: 20px;
   border: 30px solid #ebeef5;
+}
+.el-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 </style>
